@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plano de Desenvolvimento Individual (PDI)</title>
+    <!-- Carregamento do Tailwind CSS para estilização -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Carregamento de bibliotecas para geração de PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <!-- Configuração da fonte Inter e estilos personalizados -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fc;
+        }
+        /* Estilo para a Visualização do IDP (área a ser impressa) */
+        #idp-output-content {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+            background-color: white;
+            padding: 1.5rem; /* Padding base para mobile */
+            margin: 0 auto;
+            max-width: 900px; /* Largura máxima mantida para simular A4 em desktop */
+        }
+        
+        /* Ajuste de padding para telas maiores */
+        @media (min-width: 640px) {
+            #idp-output-content {
+                padding: 2.5rem; /* Maior padding em telas sm e maiores */
+            }
+        }
+
+        /* Estilos de impressão para otimizar o PDF */
+        @media print {
+            body {
+                margin: 0;
+                padding: 0;
+                background-color: white;
+            }
+            #input-form-container, #actions-container, .modal-overlay, #idp-visualization button {
+                display: none !important;
+            }
+            #idp-output-content {
+                box-shadow: none !important;
+                max-width: none !important;
+                width: 100% !important;
+                padding: 0.5in !important; /* Margem de impressão */
+                margin: 0 !important;
+            }
+        }
+        
+        .section-header {
+            color: #1e40af; /* blue-800 */
+            border-bottom: 2px solid #60a5fa; /* blue-400 */
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .data-label {
+            font-weight: 600;
+            color: #374151; /* gray-700 */
+            margin-top: 0.75rem;
+        }
+        .data-value {
+            color: #1f2937; /* gray-800 */
+            border-bottom: 1px dashed #d1d5db;
+            padding-bottom: 0.25rem;
+        }
+        .list-disc-custom {
+            list-style-type: disc;
+            margin-left: 1.5rem;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    
+    <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900 text-center mb-6 lg:mb-10">
+            Plano de Desenvolvimento Individual (PDI)
+        </h1>
+
+        <!-- 1. CONTAINER DO FORMULÁRIO (INPUT) -->
+        <div id="input-form-container" class="bg-white p-6 sm:p-8 rounded-xl shadow-2xl border border-gray-200">
+            <form id="idp-form" class="space-y-8">
+                
+                <!-- SEÇÃO 1: INFORMAÇÕES BÁSICAS -->
+                <div class="space-y-4">
+                    <h2 class="text-2xl font-bold section-header">1. Identificação</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                        <div class="col-span-1">
+                            <label for="colaborador" class="block text-sm font-medium text-gray-700">Colaborador(a)</label>
+                            <input type="text" id="colaborador" name="colaborador" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border focus:ring-blue-500 focus:border-blue-500" placeholder="Nome Completo">
+                        </div>
+                        <div class="col-span-1">
+                            <label for="cargo" class="block text-sm font-medium text-gray-700">Cargo Atual</label>
+                            <input type="text" id="cargo" name="cargo" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border" placeholder="Ex: Analista de Sistemas">
+                        </div>
+                        <div class="col-span-1">
+                            <label for="gestor" class="block text-sm font-medium text-gray-700">Gestor(a) / Mentor(a)</label>
+                            <input type="text" id="gestor" name="gestor" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border" placeholder="Nome do(a) Líder">
+                        </div>
+                        <div class="col-span-1">
+                            <label for="data-inicio" class="block text-sm font-medium text-gray-700">Data de Início do PDI</label>
+                            <input type="date" id="data-inicio" name="data-inicio" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border bg-white">
+                        </div>
+                        <div class="col-span-1">
+                            <label for="data-fim" class="block text-sm font-medium text-gray-700">Data de Conclusão Prevista</label>
+                            <input type="date" id="data-fim" name="data-fim" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border bg-white">
+                        </div>
+                        <div class="col-span-1">
+                            <label for="periodo" class="block text-sm font-medium text-gray-700">Período (Ex: 6 meses)</label>
+                            <input type="text" id="periodo" name="periodo" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border" placeholder="Ex: 6 meses, 1 ano">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SEÇÃO 2: OBJETIVO PRINCIPAL DO PDI -->
+                <div class="space-y-4">
+                    <h2 class="text-2xl font-bold section-header">2. Objetivo Principal do PDI</h2>
+                    <div>
+                        <label for="objetivo-principal" class="block text-sm font-medium text-gray-700">Qual é a principal meta de desenvolvimento que você busca atingir neste ciclo?</label>
+                        <textarea id="objetivo-principal" name="objetivo-principal" rows="3" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border" placeholder="Ex: Transição para o cargo de Gerente de Projeto Júnior, dominando as metodologias Ágeis e aumentando a proficiência em liderança."></textarea>
+                    </div>
+                </div>
+
+                <!-- SEÇÃO 3: HABILIDADES/COMPETÊNCIAS A DESENVOLVER (DINÂMICO) -->
+                <div class="space-y-4">
+                    <h2 class="text-2xl font-bold section-header">3. Ações e Competências a Desenvolver</h2>
+                    <div id="competencias-container" class="space-y-6">
+                        <!-- Item de Competência 1 (Template) -->
+                        <div class="competencia-item p-4 border border-blue-200 rounded-xl bg-blue-50 relative break-avoid">
+                            <h3 class="competencia-title text-lg font-bold text-blue-700 mb-3">Competência #1</h3>
+                            <button type="button" class="remove-competencia absolute top-3 right-3 text-red-500 hover:text-red-700 text-sm font-medium transition duration-150">
+                                Remover
+                            </button>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Habilidade/Competência</label>
+                                    <input type="text" name="habilidade" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border" placeholder="Ex: Comunicação eficaz ou Python Intermediário">
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Nível Atual</label>
+                                        <input type="text" name="nivel-atual" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border" placeholder="Ex: Básico, 2/5">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Nível Desejado</label>
+                                        <input type="text" name="nivel-desejado" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border" placeholder="Ex: Avançado, 4/5">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Ações de Desenvolvimento (Uma por linha)</label>
+                                    <textarea name="acoes" rows="3" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border" placeholder="Ex: Curso X na Alura. Mentoria com o gestor 2x por mês."></textarea>
+                                </div>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Recursos Necessários</label>
+                                        <input type="text" name="recursos" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border" placeholder="Ex: Orçamento para curso, licença de software">
+                                    </div>
+                                    <div class="col-span-1">
+                                        <label class="block text-sm font-medium text-gray-700">Prazo Estimado</label>
+                                        <input type="text" name="prazo" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border" placeholder="Ex: 3 meses">
+                                    </div>
+                                    <div class="col-span-2">
+                                        <label class="block text-sm font-medium text-gray-700">Métricas de Sucesso (Como medir)</label>
+                                        <input type="text" name="metricas" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border" placeholder="Ex: Conclusão de 100% dos módulos do curso. Feedback 360 positivo.">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" id="add-competencia" class="w-full py-3 px-4 border border-transparent rounded-lg shadow-md text-sm font-bold text-white bg-green-600 hover:bg-green-700 transition duration-150">
+                        + Adicionar Competência/Meta
+                    </button>
+                </div>
+
+                <!-- SEÇÃO 4: ACOMPANHAMENTO E FEEDBACK -->
+                <div class="space-y-4">
+                    <h2 class="text-2xl font-bold section-header">4. Acompanhamento</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                        <div class="col-span-1">
+                            <label for="frequencia-feedback" class="block text-sm font-medium text-gray-700">Frequência de Feedback/Acompanhamento</label>
+                            <input type="text" id="frequencia-feedback" name="frequencia-feedback" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border" placeholder="Ex: Mensal (Gestor) e Quinzenal (Mentor)">
+                        </div>
+                        <div class="col-span-1">
+                            <label for="revisao-final" class="block text-sm font-medium text-gray-700">Data de Revisão Final</label>
+                            <input type="date" id="revisao-final" name="revisao-final" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border bg-white">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="comentarios-finais" class="block text-sm font-medium text-gray-700">Comentários e Assinaturas (Espaço para observações)</label>
+                        <textarea id="comentarios-finais" name="comentarios-finais" rows="3" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border" placeholder="Quaisquer observações importantes sobre o plano."></textarea>
+                    </div>
+                </div>
+
+                <!-- CONTAINER DE AÇÕES -->
+                <div id="actions-container" class="mt-8 pt-6 border-t border-gray-200">
+                    <button type="button" onclick="visualizeIDP()" class="w-full sm:w-auto px-6 py-3 border border-transparent rounded-lg shadow-lg text-lg font-bold text-white bg-blue-600 hover:bg-blue-700 transition duration-150 transform hover:scale-[1.01]">
+                        Visualizar PDI
+                    </button>
+                </div>
+
+            </form>
+        </div>
+
+        <!-- 2. CONTAINER DE VISUALIZAÇÃO (OUTPUT) -->
+        <div id="idp-visualization" class="hidden">
+            <button onclick="editIDP()" class="w-full sm:w-auto px-6 py-3 mb-6 border border-transparent rounded-lg shadow-md text-sm font-bold text-white bg-gray-600 hover:bg-gray-700 transition duration-150">
+                &larr; Voltar para Edição
+            </button>
+            
+            <!-- Este div é a folha A4 a ser impressa/convertida para PDF -->
+            <div id="idp-output-content" class="rounded-xl">
+                <!-- Conteúdo gerado pelo JS será inserido aqui -->
+            </div>
+
+            <div class="mt-6">
+                 <button id="download-pdf" class="w-full sm:w-auto px-6 py-3 border border-transparent rounded-lg shadow-lg text-lg font-bold text-white bg-green-600 hover:bg-green-700 transition duration-150 transform hover:scale-[1.01]">
+                    Gerar PDF (Download)
+                </button>
+            </div>
+           
+        </div>
+    </div>
+    
+    <!-- Modal de Sucesso (Responsivo e Flutuante) -->
+    <div id="success-modal" class="modal-overlay fixed inset-0 bg-gray-900 bg-opacity-75 z-50 hidden items-center justify-center p-4" onclick="hideModal()">
+        <div class="bg-white rounded-xl shadow-2xl p-6 sm:p-8 max-w-sm w-full transition-all duration-300 transform scale-95" onclick="event.stopPropagation()">
+            <h3 class="text-xl font-bold text-green-600 mb-4 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                PDF Gerado com Sucesso!
+            </h3>
+            <p class="text-gray-700 mb-6">Seu Plano de Desenvolvimento Individual foi convertido para PDF e está pronto para ser baixado. Verifique sua pasta de downloads.</p>
+            <button onclick="hideModal()" class="w-full py-3 px-4 border border-transparent rounded-lg shadow-md text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 transition duration-150">
+                Fechar
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('idp-form');
+        const competenciasContainer = document.getElementById('competencias-container');
+        const idpOutputContent = document.getElementById('idp-output-content');
+        const downloadPdfBtn = document.getElementById('download-pdf');
+
+        // --- FUNÇÕES DE CONTROLE DE MODAL ---
+        function showModal() {
+            document.getElementById('success-modal').classList.remove('hidden');
+            document.getElementById('success-modal').classList.add('flex');
+        }
+
+        function hideModal() {
+            document.getElementById('success-modal').classList.add('hidden');
+            document.getElementById('success-modal').classList.remove('flex');
+        }
+
+
+        // --- FUNÇÕES DE MANIPULAÇÃO DO DOM DINÂMICO ---
+
+        const competenciaTemplate = `
+            <div class="competencia-item p-4 border border-blue-200 rounded-xl bg-blue-50 relative break-avoid">
+                <h3 class="competencia-title text-lg font-bold text-blue-700 mb-3">Competência #X</h3>
+                <button type="button" class="remove-competencia absolute top-3 right-3 text-red-500 hover:text-red-700 text-sm font-medium transition duration-150">
+                    Remover
+                </button>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Habilidade/Competência</label>
+                        <input type="text" name="habilidade" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border" placeholder="Ex: Comunicação eficaz ou Python Intermediário">
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Nível Atual</label>
+                            <input type="text" name="nivel-atual" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border" placeholder="Ex: Básico, 2/5">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Nível Desejado</label>
+                            <input type="text" name="nivel-desejado" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border" placeholder="Ex: Avançado, 4/5">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Ações de Desenvolvimento (Uma por linha)</label>
+                        <textarea name="acoes" rows="3" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border" placeholder="Ex: Curso X na Alura. Mentoria com o gestor 2x por mês."></textarea>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Recursos Necessários</label>
+                            <input type="text" name="recursos" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border" placeholder="Ex: Orçamento para curso, licença de software">
+                        </div>
+                        <div class="col-span-1">
+                            <label class="block text-sm font-medium text-gray-700">Prazo Estimado</label>
+                            <input type="text" name="prazo" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border" placeholder="Ex: 3 meses">
+                        </div>
+                        <div class="col-span-2">
+                            <label class="block text-sm font-medium text-gray-700">Métricas de Sucesso (Como medir)</label>
+                            <input type="text" name="metricas" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-3 border" placeholder="Ex: Conclusão de 100% dos módulos do curso. Feedback 360 positivo.">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Função para atualizar os títulos e rebindar eventos
+        function updateCompetenciaTitles() {
+            Array.from(competenciasContainer.children).forEach((item, index) => {
+                item.querySelector('.competencia-title').textContent = `Competência #${index + 1}`;
+            });
+        }
+
+        // Remove o template inicial, adiciona um item real e configura o botão
+        function setupDynamicCompetencias() {
+            // Remove o item template inicial
+            competenciasContainer.children[0].remove();
+
+            // Adiciona um item real para começar
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = competenciaTemplate;
+            competenciasContainer.appendChild(tempDiv.firstChild);
+
+            updateCompetenciaTitles();
+
+            // Adicionar Item
+            document.getElementById('add-competencia').addEventListener('click', () => {
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = competenciaTemplate;
+                competenciasContainer.appendChild(tempDiv.firstChild);
+                updateCompetenciaTitles();
+            });
+
+            // Remover Item
+            competenciasContainer.addEventListener('click', (e) => {
+                if (e.target.classList.contains('remove-competencia')) {
+                    e.target.closest('.competencia-item').remove();
+                    updateCompetenciaTitles();
+                }
+            });
+        }
+
+        // Chamada inicial
+        setupDynamicCompetencias();
+
+
+        // --- FUNÇÃO PRINCIPAL DE RENDERIZAÇÃO DO PDI ---
+
+        function generateIDPContent() {
+            const data = new FormData(form);
+            const idpData = {};
+
+            // Reúne dados simples
+            for (let pair of data.entries()) {
+                if (!pair[0].includes('-') && pair[0] !== 'habilidade' && pair[0] !== 'nivel-atual' && pair[0] !== 'nivel-desejado' && pair[0] !== 'acoes' && pair[0] !== 'recursos' && pair[0] !== 'prazo' && pair[0] !== 'metricas') {
+                    idpData[pair[0]] = pair[1].trim();
+                }
+            }
+
+            // Reúne dados das competências
+            idpData.competencias = [];
+            document.querySelectorAll('.competencia-item').forEach(item => {
+                const fields = {};
+                item.querySelectorAll('input, textarea').forEach(input => {
+                    fields[input.name] = input.value.trim();
+                });
+
+                if (fields.habilidade) {
+                    idpData.competencias.push({
+                        habilidade: fields['habilidade'],
+                        nivelAtual: fields['nivel-atual'],
+                        nivelDesejado: fields['nivel-desejado'],
+                        acoes: fields['acoes'] ? fields['acoes'].split('\n').filter(line => line.length > 0) : [],
+                        recursos: fields['recursos'],
+                        prazo: fields['prazo'],
+                        metricas: fields['metricas'],
+                    });
+                }
+            });
+
+            let html = '';
+
+            // 1. HEADER E INFORMAÇÕES BÁSICAS
+            html += `
+                <div class="text-center pb-4 mb-6 border-b-4 border-blue-600">
+                    <h1 class="text-3xl font-extrabold text-blue-800">PLANO DE DESENVOLVIMENTO INDIVIDUAL</h1>
+                </div>
+
+                <div class="mb-6 pb-4 border-b border-gray-300">
+                    <h2 class="text-xl font-bold section-header">1. Identificação</h2>
+                    <div class="grid grid-cols-2 gap-4 text-sm sm:grid-cols-3">
+                        <div><p class="data-label">Colaborador(a):</p><p class="data-value">${idpData.colaborador || 'Não preenchido'}</p></div>
+                        <div><p class="data-label">Cargo Atual:</p><p class="data-value">${idpData.cargo || 'Não preenchido'}</p></div>
+                        <div><p class="data-label">Gestor(a) / Mentor(a):</p><p class="data-value">${idpData.gestor || 'Não preenchido'}</p></div>
+                        <div><p class="data-label">Início PDI:</p><p class="data-value">${idpData['data-inicio'] || 'Não preenchido'}</p></div>
+                        <div><p class="data-label">Conclusão Prevista:</p><p class="data-value">${idpData['data-fim'] || 'Não preenchido'}</p></div>
+                        <div><p class="data-label">Período:</p><p class="data-value">${idpData.periodo || 'Não preenchido'}</p></div>
+                    </div>
+                </div>
+
+                <!-- 2. OBJETIVO PRINCIPAL -->
+                <div class="mb-6 pb-4 border-b border-gray-300">
+                    <h2 class="text-xl font-bold section-header">2. Objetivo Principal do PDI</h2>
+                    <p class="text-gray-700 text-base">${idpData['objetivo-principal'] || 'Nenhum objetivo principal definido.'}</p>
+                </div>
+            `;
+            
+            // 3. COMPETÊNCIAS A DESENVOLVER
+            if (idpData.competencias.length > 0) {
+                html += `
+                    <div class="mb-6">
+                        <h2 class="text-xl font-bold section-header">3. Ações e Competências a Desenvolver</h2>
+                        <div class="space-y-6">
+                            ${idpData.competencias.map((comp, index) => `
+                                <div class="border border-blue-300 rounded-lg p-4 bg-blue-50 break-inside-avoid">
+                                    <h3 class="text-lg font-bold text-blue-700 mb-3">Competência #${index + 1}: ${comp.habilidade || 'Não nomeada'}</h3>
+                                    
+                                    <div class="grid grid-cols-2 gap-4 text-sm mb-4">
+                                        <div><p class="data-label">Nível Atual:</p><p class="data-value">${comp.nivelAtual || 'N/A'}</p></div>
+                                        <div><p class="data-label">Nível Desejado:</p><p class="data-value">${comp.nivelDesejado || 'N/A'}</p></div>
+                                    </div>
+
+                                    <div class="text-sm mb-4">
+                                        <p class="data-label">Ações de Desenvolvimento:</p>
+                                        ${comp.acoes.length > 0 ? `
+                                            <ul class="list-disc-custom text-gray-700 mt-1">
+                                                ${comp.acoes.map(acao => `<li class="ml-1">${acao}</li>`).join('')}
+                                            </ul>
+                                        ` : '<p class="text-gray-500">Nenhuma ação detalhada.</p>'}
+                                    </div>
+                                    
+                                    <div class="grid grid-cols-2 gap-4 text-sm">
+                                        <div><p class="data-label">Recursos Necessários:</p><p class="data-value">${comp.recursos || 'N/A'}</p></div>
+                                        <div><p class="data-label">Prazo Estimado:</p><p class="data-value">${comp.prazo || 'N/A'}</p></div>
+                                        <div class="col-span-2"><p class="data-label">Métricas de Sucesso:</p><p class="data-value">${comp.metricas || 'N/A'}</p></div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 4. ACOMPANHAMENTO E ASSINATURAS
+            html += `
+                <div class="mb-6 pb-4 border-b border-gray-300">
+                    <h2 class="text-xl font-bold section-header">4. Acompanhamento</h2>
+                    <div class="grid grid-cols-2 gap-4 text-sm mb-4">
+                        <div><p class="data-label">Frequência de Acompanhamento:</p><p class="data-value">${idpData['frequencia-feedback'] || 'Não preenchido'}</p></div>
+                        <div><p class="data-label">Data de Revisão Final:</p><p class="data-value">${idpData['revisao-final'] || 'Não preenchido'}</p></div>
+                    </div>
+                    
+                    <div class="text-sm mb-8">
+                        <p class="data-label">Comentários Finais (Gestor/Colaborador):</p>
+                        <p class="data-value min-h-[50px]">${idpData['comentarios-finais'] || 'Nenhum comentário adicionado.'}</p>
+                    </div>
+
+                    <!-- Espaço para Assinaturas -->
+                    <div class="grid grid-cols-2 gap-8 mt-10 text-center text-sm">
+                        <div class="border-t border-gray-400 pt-2">
+                            <p>Assinatura do Colaborador(a)</p>
+                        </div>
+                        <div class="border-t border-gray-400 pt-2">
+                            <p>Assinatura do Gestor(a) / Mentor(a)</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+
+            idpOutputContent.innerHTML = html;
+        }
+
+
+        // --- FUNÇÕES DE CONTROLE DE VISUALIZAÇÃO (TELA) ---
+
+        // Função para ir para a visualização
+        function visualizeIDP() {
+            // 1. Gera o conteúdo antes de exibir
+            generateIDPContent();
+
+            // 2. Esconde o formulário e mostra a visualização
+            document.getElementById('input-form-container').classList.add('hidden');
+            document.getElementById('idp-visualization').classList.remove('hidden');
+            
+            // 3. Rola para o topo (boa prática em apps mobile)
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Função para voltar para o formulário
+        function editIDP() {
+            document.getElementById('idp-visualization').classList.add('hidden');
+            document.getElementById('input-form-container').classList.remove('hidden');
+            // Não limpa o conteúdo, mas permite a edição
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Define as funções globais (necessário porque o HTML está chamando-as diretamente)
+        window.visualizeIDP = visualizeIDP;
+        window.editIDP = editIDP;
+
+
+        // --- FUNÇÃO DE GERAÇÃO DE PDF (COM MULTIPAGE) ---
+        downloadPdfBtn.addEventListener('click', generatePDF);
+        
+        async function generatePDF() {
+            const btn = document.getElementById('download-pdf');
+            btn.disabled = true;
+            btn.innerHTML = 'Gerando PDF... Aguarde';
+
+            try {
+                // Força o DOM a renderizar o conteúdo atualizado antes de capturar
+                await new Promise(resolve => setTimeout(resolve, 50));
+                
+                const element = document.getElementById('idp-output-content');
+                
+                // Configurações do PDF (A4 em polegadas)
+                const pdfWidth = 8.27; // Largura do A4 em polegadas
+                const pdfHeight = 11.69; // Altura do A4 em polegadas
+                const margin = 0.5; // Margem de 0.5 polegadas
+
+                // Cria o objeto jsPDF
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('p', 'in', 'a4');
+
+                // Captura a imagem do elemento com html2canvas
+                const canvas = await html2canvas(element, { scale: 2 });
+                const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                
+                // Calcula as dimensões
+                const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+                const contentWidth = pdfWidth - (2 * margin); // Largura útil
+                let heightLeft = imgHeight;
+                let position = margin; // Posição inicial (topo da página)
+                
+                // Dimensões utilizáveis (subtrai margem de topo e base da primeira página)
+                const pageUsableHeight = pdfHeight - (2 * margin);
+                
+                // Adiciona a primeira página (se houver conteúdo)
+                doc.addImage(imgData, 'JPEG', margin, position, contentWidth, imgHeight);
+                heightLeft -= pageUsableHeight;
+
+                // Se houver mais conteúdo, adiciona novas páginas
+                while (heightLeft > 0) {
+                    // Recalcula a posição para o topo da nova página
+                    // position deve ser negativo, pois estamos "puxando" o conteúdo para cima
+                    // A posição é a altura total da imagem (imgHeight) - a altura total do conteúdo
+                    // da altura total já adicionada (que é um múltiplo de pdfHeight)
+                    position = heightLeft - imgHeight + margin; 
+
+                    doc.addPage();
+                    // Adiciona a imagem, deslocando verticalmente para mostrar a próxima parte do conteúdo
+                    doc.addImage(imgData, 'JPEG', margin, position, contentWidth, imgHeight); 
+
+                    heightLeft -= pageUsableHeight; // Subtrai a altura utilizável de uma página
+                }
+
+                // Obtém o nome do colaborador para o nome do arquivo
+                const colaborador = document.getElementById('colaborador').value.trim() || 'PDI';
+                const nomeArquivo = `PDI_${colaborador.replace(/[^a-zA-Z0-9]/g, '_')}`;
+
+                // Salva o PDF
+                doc.save(`${nomeArquivo}.pdf`);
+
+                showModal(); // Mostra o aviso de sucesso
+
+            } catch (error) {
+                console.error('Erro ao gerar PDF:', error);
+                // No mundo real, aqui haveria um modal de erro
+            } finally {
+                // Reabilita o botão
+                btn.disabled = false;
+                btn.innerHTML = 'Gerar PDF (Download)';
+            }
+        }
+    </script>
+</body>
+</html>
